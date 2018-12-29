@@ -1,17 +1,14 @@
 import json
 import sys
 
-import click
-
 from . import encrypt as fossd_encrypt, decrypt as fossd_decrypt
 
 
-@click.group()
-def cli():
-    ...
-
-
-@cli.command()
 def decrypt():
-    input_data = fossd_decrypt(sys.stdin.buffer.read())
-    print(json.dumps(input_data, indent=2))
+    input_data = fossd_decrypt(sys.stdin.buffer.read())  # stdin as bin
+    print(json.dumps(input_data, indent=2))  # stdout as text
+
+
+def encrypt():
+    input_data = json.loads(sys.stdin.read())  # stdin as text
+    sys.stdout.buffer.write(fossd_encrypt(input_data))  # stdout as bin

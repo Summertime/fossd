@@ -1,16 +1,23 @@
 import base64
 import json
 
-from .crypto_primitives import cipher
+from .crypto_primitives import cipher, padding
 
 
 def decrypt(save_file: bytes) -> dict:
     decryptor = cipher.decryptor()
-    save_file = base64.b64decode(save_file)
-    save_file = decryptor.update(save_file) + decryptor.finalize()
-    save_file = save_file.strip(b"\x05")
-    return json.loads(save_file)
+    unpadder = padding.unpadder()
+    data = base64.b64decode(save_file)
+    data = decryptor.update(data) + decryptor.finalize()
+    data = unpadder.update(data) + unpadder.finalize()
+    return json.loads(data.decode("utf-8"))
 
 
-def encrypt(json_dict: dict) -> bytes:
-    raise NotImplementedError
+def encrypt(save_file: dict) -> bytes:
+    data = json.dumps(save_file, separators=(",", ":")).encode("utf-8")
+    encryptor = cipher.encryptor()
+    padder = padding.padder()
+    data = padder.update(data) + padder.finalize()
+    data = encryptor.update(data) + encryptor.finalize()
+    data = base64.b64encode(data)
+    return data
